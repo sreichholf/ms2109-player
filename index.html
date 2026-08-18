@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <link rel="icon" href="/favicon.ico" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="description" content="Web player for MacroSilicon MS2109 capture cards" />
+  <link rel="apple-touch-icon" href="/logo192.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <title>MS2109</title>
+</head>
+
+<body>
+  <noscript>You need to enable JavaScript to run this app.</noscript>
+  <video id="video" autoplay></video>
+  <div class="controls-zone">
+    <span class="hint" aria-hidden="true"></span>
+    <div class="controls">
+      <label>Video <select id="video-device"></select></label>
+      <label>Audio <select id="audio-device"></select></label>
+      <span id="status"></span>
+      <span id="level" title="Input level"></span>
+    </div>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+
+</html>
