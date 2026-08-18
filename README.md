@@ -43,13 +43,49 @@ Notes:
 Or you can use this web player:
 
 * No need to install OBS
-* No need to reconfigure after every reconnect
+* No need to reconfigure after every reconnect: devices are re-detected on plug/unplug
 * Low CPU usage
-* Automatically detect hightest FPS (30 vs 25)
-* Automatically convert audio to stereo
+* Automatically detects the highest working frame rate (30FPS, falling back to 25FPS)
+* Converts the interleaved mono audio to stereo, when the OS doesn't already do it
+* Picker for the video and audio input, so any capture card can be used, not just the MS2109
 
 However
 
-* It only support 1080P resolution
-* It only support MJPEG format
-* Only tested on Chrome (Microsoft Edge) on Windows 10. Due to the specific method for finding the device, it may fail on other browsers/OSes
+* It only supports 1080P resolution
+* It only supports MJPEG format
+* It needs a secure context, so `https://` or `localhost`. On a plain HTTP origin the browser does not expose `navigator.mediaDevices` at all and nothing can work.
+* Only tested on Chromium based browsers. The mono to stereo `split` path has not been re-tested on Windows since the rewrite.
+
+### Usage
+
+Hover the dot in the top left corner to reveal the controls: a video input picker, an audio input picker and a status line.
+
+Inputs whose label starts with `USB Video` are pre-selected, and the audio input is paired to the video input by `groupId` (the MS2109 reports one group for both), so the card is normally picked up without touching anything. Any other device can be selected manually.
+
+The status line reports the negotiated video mode, the audio path and a live input level:
+
+```
+1920x1080 30FPS · audio stereo 2ch 48000Hz   ▄ -22dB
+```
+
+* `stereo`: the OS already de-interleaves the audio (the Linux kernel does), so it is passed through untouched
+* `split`: the stream arrives as mono and is de-interleaved in an `AudioWorkletProcessor`
+* The level meter is the quickest way to tell a hung capture card (`silent`) from an output routing problem (level moves but nothing is audible)
+
+The `split` processor maps the first sample of each pair to the **right** channel, which is the opposite of note 3 under [Spec](#spec). Only the `stereo` path has been verified, so if the channels come out swapped, swap them in `deinterleave()` in `src/capture.ts`.
+
+### Development
+
+Vanilla TypeScript and [Vite](https://vite.dev/), no runtime dependencies. Needs Node.js and [pnpm](https://pnpm.io/).
+
+```sh
+pnpm install
+pnpm dev        # dev server on http://localhost:5173
+pnpm build      # production build into dist/
+pnpm preview    # serve the production build
+pnpm typecheck  # tsc --noEmit
+```
+
+`dist/` references its assets relatively, so it can be uploaded to any path on a static host (as long as it is served over HTTPS).
+
+There is no linter: `typescript-eslint` does not support TypeScript 7 yet, so `tsc` is the only static check.
